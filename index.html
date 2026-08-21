@@ -4973,6 +4973,31 @@ html body .v12-project-list{
 .yeezy-gate button{font-family:var(--v10-mono,ui-monospace,monospace);font-size:12px;text-transform:lowercase;letter-spacing:.05em;padding:10px 16px;border:1px solid #111;background:#111;color:#fff;cursor:pointer;border-radius:0}
 .yeezy-gate button:hover{background:#fff;color:#111}
 .showcase-pdf.yeezy-lock{border-bottom:1px solid #111}
+
+/* Projects dropdown: hovering a project name shows a solid black rectangle
+   with white text, consistent everywhere (Home included, blend neutralised).
+   Padding is always present with a compensating negative margin so the text
+   never shifts and the list keeps its left edge under PROJECTS. */
+.v12-project-list a{
+  display:table!important;      /* block-level, but shrinks to hug the text */
+  padding:3px 9px!important;
+  margin:2px -9px!important;
+  border-radius:0!important;
+  transition:none!important;
+}
+html body .v12-project-list a:hover,
+html body .v12-project-list a:focus-visible,
+html body[data-route="/"] .v12-project-list a:hover,
+html body[data-route="/"] .v12-project-list a:focus-visible,
+html body.v14-invert-masthead .v12-project-list a:hover,
+html body.v14-invert-masthead .v12-project-list a:focus-visible{
+  background:#000!important;
+  color:#fff!important;
+  mix-blend-mode:normal!important;
+  isolation:isolate!important;
+  opacity:1!important;
+  -webkit-text-fill-color:#fff!important;
+}
 </style>
 </head>
 <body data-build="v28">
