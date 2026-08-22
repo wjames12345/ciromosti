@@ -5081,12 +5081,18 @@ html body.v14-invert-masthead .v12-project-cell > a:focus-visible{
 .v10-lb-arrow.prev{ left:14px!important; }
 .v10-lb-arrow.next{ right:14px!important; }
 
-/* CHUNK 6 — About services list: centre the two-column block symmetrically. */
+/* About services list: two EQUAL-width columns, centred as one balanced block
+   under the "services +" toggle (symmetric gutter, mirrored about centre). */
+.about-services-panel{ text-align:center!important; }
 .about-services-grid{
-  max-width:480px!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
-  column-gap:56px!important;
+  display:inline-grid!important;
+  grid-template-columns:210px 210px!important;
+  column-gap:48px!important;
+  row-gap:11px!important;
+  margin:0 auto!important;
+  max-width:none!important;
+  width:auto!important;
+  text-align:left!important;
   justify-content:center!important;
 }
 
@@ -5134,9 +5140,33 @@ html body .v12-masthead .v12-project-list a:focus-visible{
   opacity:1!important;
 }
 
-/* Hero photo much bigger on desktop. */
-.showcase-hero{
-  height:clamp(460px,58vw,780px)!important;
+/* PROJECT MODULE — one consistent composition for every project.
+   The hero is a FIXED-height frame (identical for all 20 projects) and the
+   photograph is shown UNCROPPED (contain), centred on white, clipped to the
+   frame. Because the frame height never changes, clicking a thumbnail swaps
+   the image inside it without moving the page — portrait or landscape sit
+   cleanly, and nothing can ever overflow/overlap.
+   High specificity (html body [data-project-card]) is required to beat the
+   layered master rules that force hero imgs to natural height. */
+html body [data-project-card] .showcase-hero{
+  height:clamp(440px,54vw,720px)!important;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+  overflow:hidden!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:#fff!important;
+  cursor:zoom-in!important;
+}
+html body [data-project-card] .showcase-hero img{
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  display:block!important;
 }
 .showcase-main{
   grid-template-columns:220px minmax(0,1fr)!important;
@@ -5145,9 +5175,28 @@ html body .v12-masthead .v12-project-list a:focus-visible{
   grid-template-columns:minmax(0,1fr) 220px!important;
 }
 @media(max-width:767px){
-  /* Big hero on phone (full-width natural), carousel handled at 3-across in JS. */
-  .showcase-hero{ height:auto!important; }
-  .showcase-hero img{ width:100%!important;height:auto!important;display:block!important; }
+  /* Big hero on phone: taller fixed frame, still uncropped + clipped. */
+  html body [data-project-card] .showcase-hero{
+    height:62svh!important;
+    overflow:hidden!important;
+  }
+  html body [data-project-card] .showcase-hero img{
+    width:100%!important;height:100%!important;object-fit:contain!important;
+  }
+}
+
+/* HOME-ROUTE HOVER FIX — .v12-masthead itself carries mix-blend-mode:difference
+   on the home route, which re-inverts the hovered black box into an invisible
+   white one. Neutralise that blend ONLY while a nav item is hovered, so the box
+   renders solid black on home exactly as it does on internal routes. Non-hover
+   inversion is untouched (each link keeps its own difference blend). */
+html body[data-route="/"] .v12-masthead:has(.v12-mainnav > a:hover),
+html body[data-route="/"] .v12-masthead:has(.v12-mainnav > a:focus-visible),
+html body[data-route="/"] .v12-masthead:has(.v12-project-cell > a:hover),
+html body[data-route="/"] .v12-masthead:has(.v12-project-cell > a:focus-visible),
+html body[data-route="/"] .v12-masthead:has(.v12-project-list a:hover),
+html body[data-route="/"] .v12-masthead:has(.v12-project-list a:focus-visible){
+  mix-blend-mode:normal!important;
 }
 
 /* Project detail: small, minimal boxed "back to projects", pinned top-left. */
@@ -8259,13 +8308,9 @@ function bindV23ProjectsMenu(){
 
 /* Download index shown only at the start of the white Projects section. */
 function v23DownloadIndexHTML(){
-  return `<div class="v23-download-index" aria-label="Projects index">
+  return `<div class="v23-download-index" aria-label="Portfolio download">
     <div class="v23-download-index-inner">
       <button class="v23-download-link" type="button" data-full-portfolio-pdf>download full portfolio.pdf</button>
-      <div class="v23-download-heading">Projects</div>
-      ${PROJECTS.map(p =>
-        `<button class="v23-download-link v23-jump" type="button" data-jump="${p.slug}">${p.title}</button>`
-      ).join("")}
     </div>
   </div>`;
 }
@@ -8735,13 +8780,17 @@ function pdfImageData(pathOrData,maxEdge){
   });
 }
 
-/* ===== CHUNK 3: jump-to-project (smooth scroll from the top-left index) ===== */
+/* ===== PROJECTS dropdown = the index: a project name scrolls to that
+   project's section on the home page (navigating home first if elsewhere). ===== */
 document.addEventListener("click",function(e){
-  const j=e.target.closest("[data-jump]"); if(!j) return;
-  e.preventDefault();
-  const el=document.getElementById("proj-"+j.dataset.jump);
-  if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
-});
+  const pl=e.target.closest(".v12-project-list a"); if(!pl) return;
+  e.preventDefault(); e.stopPropagation();
+  const m=(pl.getAttribute("href")||"").match(/projects\/([^\/]+)/);
+  const slug=m?m[1]:null; if(!slug) return;
+  const go=function(){ const el=document.getElementById("proj-"+slug); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); };
+  if((location.hash.replace(/^#/,"")||"/")==="/"){ go(); }
+  else { location.hash="#/"; requestAnimationFrame(function(){ setTimeout(go,140); }); }
+},true);
 
 /* ===== CHUNK 4: project-aware lightbox (prev/next arrows + arrow keys, wrap) =====
    A showcase photo carries data-lb-project + data-lb-index, so the lightbox can
