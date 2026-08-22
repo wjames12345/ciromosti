@@ -5172,6 +5172,60 @@ html body [data-project-card] .showcase-hero{
 .hero-arrow:hover,.hero-arrow:focus-visible{ opacity:1!important; }
 .hero-arrow.prev{ left:6px!important; }
 .hero-arrow.next{ right:6px!important; }
+
+/* LEFT PROJECT NAVIGATION (home projects section). A fixed rail of every
+   project name, each name resting on a thin line. Line length = longest name
+   + 1cm, growing +3cm on hover. The whole rail fades in (invisible over the
+   landing, black over the projects) driven by scroll. Desktop only. --psn-w is
+   set by JS to the widest name's pixel width. */
+.proj-sidenav{
+  position:fixed!important;
+  left:clamp(16px,2vw,30px)!important;
+  top:50%!important;transform:translateY(-50%)!important;
+  z-index:400!important;
+  display:flex!important;flex-direction:column!important;gap:6px!important;
+  max-height:82vh!important;
+  opacity:0;pointer-events:none;
+  transition:opacity .28s ease!important;
+  font-family:var(--v10-mono,ui-monospace,monospace)!important;
+}
+.psn-item{
+  position:relative!important;display:block!important;width:max-content!important;
+  text-decoration:none!important;color:#111!important;
+  font-size:10px!important;letter-spacing:.02em!important;text-transform:lowercase!important;
+  line-height:1.55!important;padding-bottom:6px!important;
+}
+.psn-name{ position:relative!important;z-index:1!important; }
+/* Line = longest name + 1cm, +3cm on hover, but CAPPED to --psn-max (the clear
+   space before the centred modules, set live by JS) so lines never cross into
+   the content. On tight widths the hover growth is trimmed to what fits. */
+.psn-line{
+  position:absolute!important;left:0!important;bottom:0!important;height:1px!important;
+  background:currentColor!important;
+  width:min(calc(var(--psn-w,90px) + 1cm), var(--psn-max,9999px))!important;
+  transition:width .3s ease!important;
+}
+.psn-item:hover .psn-line,.psn-item:focus-visible .psn-line{
+  width:min(calc(var(--psn-w,90px) + 4cm), var(--psn-max,9999px))!important;
+}
+@media(max-width:1100px){ .proj-sidenav{ display:none!important; } }
+
+/* Contact page: full-portfolio download, sitting in the gap between the
+   agencies list and the email / instagram row, in the same font and style. */
+.v27-portfolio-block{
+  position:absolute!important;left:50%!important;transform:translateX(-50%)!important;
+  top:59%!important;width:min(520px,90vw)!important;text-align:center!important;
+}
+.v27-portfolio-link{
+  font-family:var(--v12-font,inherit)!important;font-size:11.5px!important;
+  line-height:1.25!important;font-weight:400!important;letter-spacing:.015em!important;
+  color:#000!important;background:none!important;border:none!important;
+  padding:0!important;cursor:pointer!important;text-decoration:none!important;
+}
+.v27-portfolio-link:hover,.v27-portfolio-link:focus-visible{
+  text-decoration:underline!important;text-underline-offset:2px!important;text-decoration-thickness:1px!important;
+}
+@media(max-width:767px){ .v27-portfolio-block{ top:57%!important; } }
 html body [data-project-card] .showcase-hero img{
   width:100%!important;
   height:100%!important;
@@ -8393,12 +8447,16 @@ function landing(){
     `<img class="stopmotion-frame${i===0?" is-on":""}" src="${u.src}" style="object-position:${u.pos||'center center'}" loading="eager" decoding="async"${i===0?' fetchpriority="high"':''} alt="" aria-hidden="true">`
   ).join("");
 
+  const sideNav = PROJECTS.map(p =>
+    `<a class="psn-item" href="#/projects/${p.slug}" data-side-jump="${p.slug}"><span class="psn-name">${p.title}</span><span class="psn-line" aria-hidden="true"></span></a>`
+  ).join("");
+
   return `<section class="v10-landing" id="v10Landing">
       <div class="stopmotion" id="stopmotion">${bg}</div>
       <button class="landing-scroll" type="button" data-home-projects>see projects below</button>
     </section>
+    <nav class="proj-sidenav" id="projSideNav" aria-label="Projects index">${sideNav}</nav>
     <section class="home-projects" id="homeProjects" aria-label="Projects">
-      ${v23DownloadIndexHTML()}
       ${projectsIndex()}
     </section>`;
 }
@@ -8767,6 +8825,10 @@ function contact(){
       </div>
     </section>
 
+    <section class="v27-portfolio-block" aria-label="Portfolio">
+      <button class="v27-portfolio-link" type="button" data-full-portfolio-pdf>download full portfolio.pdf</button>
+    </section>
+
     <section class="v27-contact-block" aria-label="Contact">
       <div class="v27-contact-row">
         <a href="mailto:ciro@ciromosti.com">ciro@ciromosti.com</a>
@@ -8941,6 +9003,44 @@ document.addEventListener("click",function(e){
   e.preventDefault();
   location.hash="#/";
   requestAnimationFrame(function(){ setTimeout(function(){ if(typeof v24ScrollToProjects==="function") v24ScrollToProjects(); },80); });
+});
+
+/* ===== LEFT PROJECT NAVIGATION: measure the widest name (sets the line
+   length), fade the rail in as the projects section scrolls up under the
+   stop-motion, and smooth-scroll to a project when its name is clicked. ===== */
+function updateProjSideNav(){
+  var nav=document.getElementById("projSideNav"); if(!nav) return;
+  if(!nav.dataset.measured){
+    var max=0, names=nav.querySelectorAll(".psn-name");
+    names.forEach(function(n){ if(n.offsetWidth>max) max=n.offsetWidth; });
+    if(max>0){ nav.style.setProperty("--psn-w", max+"px"); nav.dataset.measured="1"; }
+  }
+  /* Cap the line length to the clear space before the centred modules so it
+     never crosses into the content (Option B: modules stay centred). */
+  var mod=document.querySelector("#homeProjects .showcase-main");
+  if(mod){
+    var railLeft=nav.getBoundingClientRect().left;
+    var modLeft=mod.getBoundingClientRect().left;
+    var maxw=Math.max(60, Math.round(modLeft - railLeft - 18));
+    nav.style.setProperty("--psn-max", maxw+"px");
+  }
+  var hp=document.getElementById("homeProjects"); if(!hp){ nav.style.opacity=0; return; }
+  var vh=window.innerHeight||1;
+  var top=hp.getBoundingClientRect().top;
+  var p=(vh - top)/(vh*0.6);            // fade in over the last ~60% of one viewport
+  p=Math.max(0, Math.min(1, p));
+  nav.style.opacity=p;
+  nav.style.pointerEvents = p>0.1 ? "auto" : "none";
+}
+document.addEventListener("scroll", function(){ requestAnimationFrame(updateProjSideNav); }, true);
+window.addEventListener("resize", updateProjSideNav);
+window.addEventListener("hashchange", function(){ setTimeout(updateProjSideNav,60); });
+window.addEventListener("load", function(){ setTimeout(updateProjSideNav,60); });
+document.addEventListener("click", function(e){
+  var it=e.target.closest("[data-side-jump]"); if(!it) return;
+  e.preventDefault();
+  var el=document.getElementById("proj-"+it.dataset.sideJump);
+  if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
 });
 
 /* ===== Home masthead hover hold: keep the masthead in solid-black mode the
