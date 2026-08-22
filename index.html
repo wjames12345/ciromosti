@@ -5370,6 +5370,307 @@ html body[data-route="/"].masthead-hot .v12-mainnav a:not(:hover):not(:focus-vis
 }
 </style>
 <link rel="preload" as="image" href="assets/landing/land-01.jpg" fetchpriority="high">
+
+<style id="v33-mobile-only-refinement">
+/* ============================================================
+   CIRO MOSTI v33 — MOBILE ONLY.
+   Desktop is intentionally untouched. No font family, weight,
+   tracking or typeface changes are made here.
+   ============================================================ */
+
+.mobile-projects-page{display:none!important;}
+
+@media(max-width:1024px){
+  /* Prevent any child rail from widening the document. */
+  html,body{max-width:100%;overflow-x:hidden!important;}
+
+  /* Masthead: preserve the existing typography, fix only geometry. */
+  html body .v12-masthead,
+  html body[data-route="/"] .v12-masthead,
+  html body.masthead-hot .v12-masthead{
+    top:0!important;
+    width:100%!important;
+    left:0!important;
+    right:0!important;
+    padding-top:calc(12px + env(safe-area-inset-top))!important;
+    padding-right:16px!important;
+    padding-bottom:12px!important;
+    padding-left:16px!important;
+    background:#fff!important;
+    box-sizing:border-box!important;
+    mix-blend-mode:normal!important;
+    isolation:isolate!important;
+    z-index:920!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+
+  /* Intrinsic-width navigation instead of four equal columns.
+     This fixes the artificial gaps around the long contact label. */
+  html body .v12-mainnav{
+    display:flex!important;
+    grid-template-columns:none!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    width:100%!important;
+    column-gap:0!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  html body .v12-mainnav > a,
+  html body .v12-project-cell{
+    justify-self:auto!important;
+    width:auto!important;
+    flex:0 0 auto!important;
+  }
+  html body .v12-project-cell > a{width:auto!important;}
+
+  /* Mobile never uses the desktop hover submenu. */
+  html body .v12-project-list,
+  html body .v12-project-cell:hover .v12-project-list,
+  html body .v12-project-cell:focus-within .v12-project-list{
+    display:none!important;
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+
+  /* Touch devices should not retain a sticky hover rectangle.
+     The black state belongs only to the currently selected section. */
+  html body .v12-masthead .v12-mainnav > a:hover,
+  html body .v12-masthead .v12-mainnav > a:focus-visible,
+  html body .v12-masthead .v12-project-cell > a:hover,
+  html body .v12-masthead .v12-project-cell > a:focus-visible{
+    background:transparent!important;
+    color:#111!important;
+    -webkit-text-fill-color:#111!important;
+    text-decoration:none!important;
+  }
+  html body .v12-masthead .v12-mainnav .mobile-nav-active,
+  html body .v12-masthead .v12-mainnav .mobile-nav-active:hover,
+  html body .v12-masthead .v12-mainnav .mobile-nav-active:focus-visible{
+    background:#111!important;
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    text-decoration:none!important;
+  }
+
+  /* Project modules: preserve the approved large-hero + small-images layout,
+     but constrain every box to the phone viewport. */
+  html body .home-projects,
+  html body .projects-showcase,
+  html body .showcase-project,
+  html body .showcase-project-inner,
+  html body [data-project-card],
+  html body [data-project-card] .showcase-main{
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+  html body .showcase-project-inner{
+    width:calc(100vw - 28px)!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+  html body [data-project-card] .showcase-main,
+  html body .showcase-project.is-alt .showcase-main{
+    width:100%!important;
+    min-width:0!important;
+  }
+  html body [data-project-card] .showcase-copy,
+  html body [data-project-card] .showcase-hero,
+  html body [data-project-card] .showcase-thumbs{
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Three useful thumbnails across a phone, native finger scrolling,
+     with equal white gutters and no negative/full-viewport translations. */
+  html body .showcase-thumbs,
+  html body .showcase-thumbs.is-static,
+  html body .showcase-thumbs.is-active{
+    width:100%!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    padding:0!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-inline:contain!important;
+    scroll-snap-type:x proximity!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+  }
+  html body .showcase-thumbs::-webkit-scrollbar{display:none!important;}
+  html body .showcase-thumbs .thumb-track{
+    width:max-content!important;
+    max-width:none!important;
+    justify-content:flex-start!important;
+    transform:none!important;
+    transition:none!important;
+    animation:none!important;
+    padding:0!important;
+  }
+  html body .showcase-thumbs .thumb,
+  html body .showcase-thumbs.is-static .thumb,
+  html body .showcase-thumbs.is-active .thumb{
+    flex:0 0 min(150px,calc((100vw - 44px)/3))!important;
+    width:min(150px,calc((100vw - 44px)/3))!important;
+    height:min(150px,calc((100vw - 44px)/3))!important;
+    min-width:0!important;
+    scroll-snap-align:start!important;
+  }
+  html body .carousel-arrow{display:none!important;}
+
+  /* About: mobile uses natural document flow. The desktop page remains fixed,
+     but on phones the lower information can never collide with the statement. */
+  html body[data-route="/about"]{
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+  }
+  html body[data-route="/about"] .about-page{
+    height:auto!important;
+    min-height:100svh!important;
+    overflow:visible!important;
+    padding-bottom:36px!important;
+  }
+  html body[data-route="/about"] .about-lower{
+    position:relative!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    margin-top:clamp(56px,10vh,88px)!important;
+    padding-bottom:0!important;
+  }
+  html body[data-route="/about"].about-services-open .about-page{
+    min-height:100svh!important;
+  }
+
+  /* About Services: two balanced columns on mobile, typography unchanged. */
+  html body .about-services-panel{text-align:center!important;}
+  html body .about-services-grid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    width:min(440px,calc(100vw - 40px))!important;
+    max-width:calc(100vw - 40px)!important;
+    column-gap:24px!important;
+    row-gap:11px!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Project-detail back control sits beneath, never on top of, the masthead. */
+  html body .back-to-projects{
+    top:calc(92px + env(safe-area-inset-top))!important;
+    left:14px!important;
+  }
+
+  /* Dedicated mobile Projects index. The persistent masthead stays above it,
+     so PROJECTS remains visibly selected while the index is open. */
+  html body .mobile-projects-page{
+    position:fixed!important;
+    inset:0!important;
+    z-index:900!important;
+    display:block!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    background:#fff!important;
+    color:#111!important;
+    padding:
+      calc(104px + env(safe-area-inset-top))
+      18px
+      calc(32px + env(safe-area-inset-bottom))!important;
+    box-sizing:border-box!important;
+  }
+  html body .mobile-projects-page[hidden]{display:none!important;}
+  .mobile-projects-inner{
+    width:min(100%,560px);
+    margin:0 auto;
+  }
+  .mobile-projects-back{
+    display:inline-block;
+    margin:0 0 28px 0;
+    padding:6px 10px;
+    border:1px solid #111;
+    border-radius:0;
+    background:#fff;
+    color:#111;
+    font:inherit;
+    line-height:1;
+    cursor:pointer;
+  }
+  .mobile-projects-back:active,
+  .mobile-projects-back:focus-visible{
+    background:#111;
+    color:#fff;
+    outline:none;
+  }
+  .mobile-projects-list{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0;
+  }
+  .mobile-projects-list a{
+    display:block;
+    width:100%;
+    padding:9px 0;
+    color:#111!important;
+    -webkit-text-fill-color:#111!important;
+    background:transparent!important;
+    text-decoration:none!important;
+    font:inherit;
+    border:0!important;
+    box-sizing:border-box;
+  }
+  .mobile-projects-list a:active,
+  .mobile-projects-list a:focus-visible{
+    text-decoration:underline!important;
+    text-underline-offset:2px!important;
+    outline:none;
+  }
+  body.mobile-projects-open{overflow:hidden!important;}
+}
+</style>
+
+
+<style id="v34-mobile-project-detail-fix">
+/* V34 — phone-only project-detail stack. Desktop/tablet typography and layout remain untouched. */
+@media (max-width: 767px){
+  .project-page .project-grid{
+    display:block!important;
+    width:100%!important;
+    max-width:none!important;
+    padding:0 14px 90px!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+  }
+  .project-page .project-grid .frame,
+  .project-page .project-grid .frame:nth-child(n){
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 0 28px!important;
+    grid-column:auto!important;
+    min-width:0!important;
+  }
+  .project-page .project-grid .frame:last-child{margin-bottom:0!important}
+  .project-page .project-grid .photo-button{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+  }
+  .project-page .project-grid .photo-img{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    height:auto!important;
+    max-height:none!important;
+    object-fit:contain!important;
+  }
+}
+</style>
 </head>
 <body data-build="v28">
 
@@ -8638,6 +8939,11 @@ document.addEventListener("click",e=>{
   e.preventDefault();
   e.stopPropagation();
 
+  if(window.matchMedia("(max-width:1024px)").matches){
+    window.openMobileProjectsIndex(projectsLink);
+    return;
+  }
+
   const route=(location.hash.replace(/^#/,"")||"/");
   if(route==="/"){
     v24ScrollToProjects();
@@ -9038,44 +9344,6 @@ document.addEventListener("click",function(e){
   requestAnimationFrame(function(){ setTimeout(function(){ if(typeof v24ScrollToProjects==="function") v24ScrollToProjects(); },80); });
 });
 
-/* ===== LEFT PROJECT NAVIGATION: measure the widest name (sets the line
-   length), fade the rail in as the projects section scrolls up under the
-   stop-motion, and smooth-scroll to a project when its name is clicked. ===== */
-function updateProjSideNav(){
-  var nav=document.getElementById("projSideNav"); if(!nav) return;
-  if(!nav.dataset.measured){
-    var max=0, names=nav.querySelectorAll(".psn-name");
-    names.forEach(function(n){ if(n.offsetWidth>max) max=n.offsetWidth; });
-    if(max>0){ nav.style.setProperty("--psn-w", max+"px"); nav.dataset.measured="1"; }
-  }
-  /* Cap the line length to the clear space before the centred modules so it
-     never crosses into the content (Option B: modules stay centred). */
-  var mod=document.querySelector("#homeProjects .showcase-main");
-  if(mod){
-    var railLeft=nav.getBoundingClientRect().left;
-    var modLeft=mod.getBoundingClientRect().left;
-    var maxw=Math.max(60, Math.round(modLeft - railLeft - 18));
-    nav.style.setProperty("--psn-max", maxw+"px");
-  }
-  var hp=document.getElementById("homeProjects"); if(!hp){ nav.style.opacity=0; return; }
-  var vh=window.innerHeight||1;
-  var top=hp.getBoundingClientRect().top;
-  var p=(vh - top)/(vh*0.6);            // fade in over the last ~60% of one viewport
-  p=Math.max(0, Math.min(1, p));
-  nav.style.opacity=p;
-  nav.style.pointerEvents = p>0.1 ? "auto" : "none";
-}
-document.addEventListener("scroll", function(){ requestAnimationFrame(updateProjSideNav); }, true);
-window.addEventListener("resize", updateProjSideNav);
-window.addEventListener("hashchange", function(){ setTimeout(updateProjSideNav,60); });
-window.addEventListener("load", function(){ setTimeout(updateProjSideNav,60); });
-document.addEventListener("click", function(e){
-  var it=e.target.closest("[data-side-jump]"); if(!it) return;
-  e.preventDefault();
-  var el=document.getElementById("proj-"+it.dataset.sideJump);
-  if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
-});
-
 /* ===== Home masthead hover hold: keep the masthead in solid-black mode the
    whole time the cursor is over it (no per-item blend toggling = no flicker).
    Delegated (the masthead is re-rendered on every route change) with a short
@@ -9206,5 +9474,143 @@ document.addEventListener("keydown",function(e){
 route();
 requestAnimationFrame(v17UpdateMastheadState);
 </script>
+
+<script id="v33-mobile-only-behaviour">
+/* v33 — MOBILE ONLY project index + active-nav state. */
+(function(){
+  var mq=window.matchMedia('(max-width:1024px)');
+  var page=null;
+  var returnFocus=null;
+
+  function isMobile(){ return mq.matches; }
+  function currentRoute(){ return location.hash.replace(/^#/, '') || '/'; }
+
+  function ensurePage(){
+    if(page && document.body.contains(page)) return page;
+    page=document.getElementById('mobileProjectsPage');
+    if(page) return page;
+    page=document.createElement('section');
+    page.id='mobileProjectsPage';
+    page.className='mobile-projects-page';
+    page.hidden=true;
+    page.setAttribute('aria-label','Projects');
+    page.innerHTML='<div class="mobile-projects-inner">'
+      + '<button class="mobile-projects-back" type="button" data-mobile-projects-back>back</button>'
+      + '<nav class="mobile-projects-list" aria-label="Project list">'
+      + PROJECTS.map(function(p){
+          return '<a href="#/projects/'+p.slug+'" data-mobile-project-link>'+p.title.toLowerCase()+'</a>';
+        }).join('')
+      + '</nav></div>';
+    document.body.appendChild(page);
+    return page;
+  }
+
+  function syncActiveNav(){
+    if(!isMobile()) return;
+    var mast=document.querySelector('.v12-masthead');
+    if(!mast) return;
+    mast.querySelectorAll('.mobile-nav-active').forEach(function(el){ el.classList.remove('mobile-nav-active'); });
+    var r=currentRoute();
+    var active=null;
+    if(document.body.classList.contains('mobile-projects-open')){
+      active=mast.querySelector('[data-projects-home]');
+    }else if(r==='/about'){
+      active=mast.querySelector('a[href="#/about"]');
+    }else if(r==='/contact' || r==='/agencies'){
+      active=mast.querySelector('a[href="#/contact"]');
+    }else if(r.indexOf('/projects/')===0){
+      active=mast.querySelector('[data-projects-home]');
+    }else{
+      var hp=document.getElementById('homeProjects');
+      var inProjects=false;
+      if(hp){
+        var mastBottom=mast.getBoundingClientRect().bottom;
+        inProjects=hp.getBoundingClientRect().top<=mastBottom+24;
+      }
+      active=inProjects
+        ? mast.querySelector('[data-projects-home]')
+        : mast.querySelector('a[href="#/"]:not([data-projects-home])');
+    }
+    if(active) active.classList.add('mobile-nav-active');
+  }
+
+  window.openMobileProjectsIndex=function(trigger){
+    if(!isMobile()) return false;
+    var p=ensurePage();
+    returnFocus=trigger || document.activeElement;
+    p.hidden=false;
+    p.scrollTop=0;
+    document.body.classList.add('mobile-projects-open');
+    syncActiveNav();
+    requestAnimationFrame(function(){
+      var back=p.querySelector('[data-mobile-projects-back]');
+      if(back) back.focus({preventScroll:true});
+    });
+    return true;
+  };
+
+  function closeMobileProjectsIndex(restoreFocus){
+    var p=ensurePage();
+    p.hidden=true;
+    document.body.classList.remove('mobile-projects-open');
+    syncActiveNav();
+    if(restoreFocus && returnFocus && typeof returnFocus.focus==='function'){
+      try{returnFocus.focus({preventScroll:true});}catch(e){returnFocus.focus();}
+    }
+  }
+  window.closeMobileProjectsIndex=closeMobileProjectsIndex;
+
+  document.addEventListener('click',function(e){
+    if(!isMobile()) return;
+    var back=e.target.closest('[data-mobile-projects-back]');
+    if(back){
+      e.preventDefault();
+      closeMobileProjectsIndex(true);
+      return;
+    }
+    var link=e.target.closest('[data-mobile-project-link]');
+    if(link){
+      closeMobileProjectsIndex(false);
+      return; // hash navigation continues normally
+    }
+  });
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape' && document.body.classList.contains('mobile-projects-open')){
+      e.preventDefault();
+      closeMobileProjectsIndex(true);
+    }
+  });
+
+  document.addEventListener('click',function(e){
+    if(!isMobile()) return;
+    var home=e.target.closest('.v12-mainnav > a[href="#/"]:not([data-projects-home])');
+    if(home && currentRoute()==='/'){
+      e.preventDefault();
+      window.scrollTo({top:0,behavior:'smooth'});
+      requestAnimationFrame(syncActiveNav);
+    }
+  });
+
+  window.addEventListener('scroll',function(){
+    if(isMobile() && currentRoute()==='/') requestAnimationFrame(syncActiveNav);
+  },{passive:true});
+
+  window.addEventListener('hashchange',function(){
+    if(document.body.classList.contains('mobile-projects-open')) closeMobileProjectsIndex(false);
+    requestAnimationFrame(syncActiveNav);
+  });
+  window.addEventListener('resize',function(){
+    if(!isMobile() && document.body.classList.contains('mobile-projects-open')) closeMobileProjectsIndex(false);
+    requestAnimationFrame(syncActiveNav);
+  });
+  window.addEventListener('load',function(){ requestAnimationFrame(syncActiveNav); });
+
+  /* Chrome is rebuilt on every route; resync after DOM replacement. */
+  var observer=new MutationObserver(function(){ requestAnimationFrame(syncActiveNav); });
+  observer.observe(document.getElementById('tl'),{childList:true,subtree:false});
+})();
+</script>
+
 </body>
 </html>
