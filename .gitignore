@@ -1,2 +1,4 @@
 .DS_Store
 manifest.json
+_build/
+HANDOVER.md
