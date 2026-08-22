@@ -5153,12 +5153,25 @@ html body [data-project-card] .showcase-hero{
   min-height:0!important;
   aspect-ratio:auto!important;
   overflow:hidden!important;
+  position:relative!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
   background:#fff!important;
   cursor:zoom-in!important;
 }
+/* Manual prev/next arrows flanking the hero (no auto transition; click only). */
+.hero-arrow{
+  position:absolute!important;top:50%!important;transform:translateY(-50%)!important;
+  z-index:3!important;width:42px!important;height:42px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  background:none!important;border:none!important;color:#111!important;
+  font-size:30px!important;line-height:1!important;cursor:pointer!important;
+  opacity:.5!important;transition:opacity .12s!important;
+}
+.hero-arrow:hover,.hero-arrow:focus-visible{ opacity:1!important; }
+.hero-arrow.prev{ left:6px!important; }
+.hero-arrow.next{ right:6px!important; }
 html body [data-project-card] .showcase-hero img{
   width:100%!important;
   height:100%!important;
@@ -7388,9 +7401,11 @@ function projectShowcaseBlockHTML(p,index){
           <a class="showcase-title" href="#/projects/${p.slug}">${p.title}</a>
           <button class="showcase-pdf" type="button" data-pdf="${p.slug}">download pdf</button>
         </div>
-        <button class="showcase-hero" type="button" data-photo="${hero.src}" data-lb-project="${p.slug}" data-lb-index="0" data-cap="${encodeURIComponent(hero.cap||"")}" aria-label="Open hero photograph">
+        <div class="showcase-hero" role="button" tabindex="0" data-photo="${hero.src}" data-lb-project="${p.slug}" data-lb-index="0" data-cap="${encodeURIComponent(hero.cap||"")}" aria-label="Open hero photograph">
+          ${p.frames.length>1?`<button class="hero-arrow prev" type="button" data-hero-prev aria-label="Previous image">‹</button>`:""}
           <img src="${src(hero.src)}" alt="" loading="lazy" decoding="async">
-        </button>
+          ${p.frames.length>1?`<button class="hero-arrow next" type="button" data-hero-next aria-label="Next image">›</button>`:""}
+        </div>
       </div>
       <div class="showcase-thumbs is-static" data-rail-viewport>
         <div class="thumb-track" data-rail-track>${thumbs.map((f,i)=>`<button class="thumb" type="button" data-original-thumb="1" data-original-index="${i}" data-photo="${f.src}" data-lb-project="${p.slug}" data-lb-index="${i}" data-cap="${encodeURIComponent(f.cap||"")}" aria-label="Open photograph"><img src="${src(f.src)}" alt="" loading="lazy" decoding="async"></button>`).join("")}</div>
@@ -8881,6 +8896,20 @@ function lbOpenFrom(project, index){
   document.documentElement.style.overflow="hidden";
 }
 document.addEventListener("click",function(e){
+  /* Hero prev/next arrows: step the hero image manually through the project's
+     frames (wraps). No auto transition anywhere. */
+  const hp=e.target.closest("[data-hero-prev]"), hn=e.target.closest("[data-hero-next]");
+  if(hp||hn){
+    e.preventDefault(); e.stopImmediatePropagation();
+    const hero=(hp||hn).closest(".showcase-hero"); if(!hero) return;
+    const proj=PROJECTS.find(x=>x.slug===hero.dataset.lbProject); if(!proj) return;
+    const n=proj.frames.length; if(!n) return;
+    const cur=parseInt(hero.dataset.lbIndex||"0",10)||0;
+    const ni=(cur+(hn?1:-1)+n)%n;
+    const img=hero.querySelector("img"); if(img) img.src=src(proj.frames[ni].src);
+    hero.dataset.lbIndex=String(ni); hero.dataset.photo=proj.frames[ni].src;
+    return;
+  }
   const pv=e.target.closest("[data-lb-prev]"); if(pv){e.preventDefault();e.stopPropagation();lbStep(-1);return;}
   const nx=e.target.closest("[data-lb-next]"); if(nx){e.preventDefault();e.stopPropagation();lbStep(1);return;}
 
