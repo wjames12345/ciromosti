@@ -4974,6 +4974,11 @@ html body .v12-project-list{
 .yeezy-gate button:hover{background:#fff;color:#111}
 .showcase-pdf.yeezy-lock{border-bottom:1px solid #111}
 
+/* Masthead composition: shift the CIRO MOSTI wordmark + nav upward on EVERY
+   page (was 7.8svh) to match James's rendered composition. */
+:root{ --v25-masthead-top:3.4svh!important; }
+.v12-masthead{ top:3.4svh!important; }
+
 /* Projects dropdown: hovering a project name shows a solid black rectangle
    with white text, consistent everywhere (Home included, blend neutralised).
    Padding is always present with a compensating negative margin so the text
@@ -4993,6 +4998,7 @@ html body.v14-invert-masthead .v12-project-list a:hover,
 html body.v14-invert-masthead .v12-project-list a:focus-visible{
   background:#000!important;
   color:#fff!important;
+  text-decoration:none!important;
   mix-blend-mode:normal!important;
   isolation:isolate!important;
   opacity:1!important;
@@ -5107,6 +5113,63 @@ html body.v14-invert-masthead .v12-project-cell > a:focus-visible{
   object-position:center center!important;
   mix-blend-mode:normal!important;
   filter:none!important;
+}
+
+/* HOVER (hardened) — guaranteed win on EVERY route via the .v12-masthead
+   ancestor (higher specificity than the layered :not(.v14-invert-masthead)
+   underline rules). Black box + white text, NO underline, for the four nav
+   items, the projects link, AND every project name in the submenu. */
+html body .v12-masthead .v12-mainnav > a:hover,
+html body .v12-masthead .v12-mainnav > a:focus-visible,
+html body .v12-masthead .v12-project-cell > a:hover,
+html body .v12-masthead .v12-project-cell > a:focus-visible,
+html body .v12-masthead .v12-project-list a:hover,
+html body .v12-masthead .v12-project-list a:focus-visible{
+  background:#000!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  text-decoration:none!important;
+  mix-blend-mode:normal!important;
+  isolation:isolate!important;
+  opacity:1!important;
+}
+
+/* Hero photo much bigger on desktop. */
+.showcase-hero{
+  height:clamp(460px,58vw,780px)!important;
+}
+.showcase-main{
+  grid-template-columns:220px minmax(0,1fr)!important;
+}
+.showcase-project.is-alt .showcase-main{
+  grid-template-columns:minmax(0,1fr) 220px!important;
+}
+@media(max-width:767px){
+  /* Big hero on phone (full-width natural), carousel handled at 3-across in JS. */
+  .showcase-hero{ height:auto!important; }
+  .showcase-hero img{ width:100%!important;height:auto!important;display:block!important; }
+}
+
+/* Project detail: small, minimal boxed "back to projects", pinned top-left. */
+.back-to-projects{
+  position:fixed!important;
+  top:3.4svh!important;
+  left:clamp(16px,2.4vw,34px)!important;
+  z-index:470!important;
+  font-family:var(--v12-font,inherit)!important;
+  font-size:11px!important;
+  letter-spacing:.05em!important;
+  text-transform:lowercase!important;
+  padding:6px 11px!important;
+  border:1px solid #111!important;
+  background:#fff!important;
+  color:#111!important;
+  cursor:pointer!important;
+  border-radius:0!important;
+  line-height:1!important;
+}
+.back-to-projects:hover,.back-to-projects:focus-visible{
+  background:#000!important;color:#fff!important;border-color:#000!important;
 }
 </style>
 <link rel="preload" as="image" href="assets/landing/land-01.jpg" fetchpriority="high">
@@ -6418,6 +6481,7 @@ function project(slug){
   const p = PROJECTS.find(x=>x.slug===slug) || PROJECTS[0];
   if(p.locked && !yeezyUnlocked()) return yeezyGatePage(p);
   return `<main class="project-page">
+    <button class="back-to-projects" type="button" data-back-projects>back to projects</button>
     <header class="project-head">
       <h1 class="project-title">${p.title}</h1>
       <div class="project-meta"><button class="pdf-text" type="button" data-pdf="${p.slug}">pdf / download</button></div>
@@ -7261,11 +7325,11 @@ function configureRail(card){
 
   const gap=parseFloat(getComputedStyle(track).gap||'0')||0;
   const available=viewport.clientWidth;
-  const VISIBLE=5;                                   // always show 5 across
+  const VISIBLE=(window.innerWidth<768)?3:4;         // 3 across on phone, 4 on desktop
   const thumbW=Math.max(1,Math.floor((available-gap*(VISIBLE-1))/VISIBLE));
   originals.forEach(el=>{el.style.flex='0 0 '+thumbW+'px';el.style.width=thumbW+'px';});
 
-  /* CHUNK 4 rule (James): 5 or fewer non-hero thumbnails sit static; more animate. */
+  /* James: <=VISIBLE non-hero thumbnails sit static (no motion/arrows); more animate. */
   const active=originals.length>VISIBLE;
   viewport.classList.toggle('is-active',active);
   viewport.classList.toggle('is-static',!active);
@@ -8701,21 +8765,48 @@ function lbStep(d){ const L=window.lbList.length; if(!L) return; window.lbIndex=
     lb.appendChild(mk("data-lb-next","\u203a","next"));
   }
 })();
+function lbOpenFrom(project, index){
+  const proj=PROJECTS.find(x=>x.slug===project); if(!proj) return;
+  window.lbList=proj.frames.map(f=>f.src);
+  window.lbIndex=index||0;
+  const lb=document.getElementById("v10lightbox"); if(!lb) return;
+  lbRender();
+  lb.classList.add("on"); lb.setAttribute("aria-hidden","false");
+  document.documentElement.style.overflow="hidden";
+}
 document.addEventListener("click",function(e){
   const pv=e.target.closest("[data-lb-prev]"); if(pv){e.preventDefault();e.stopPropagation();lbStep(-1);return;}
   const nx=e.target.closest("[data-lb-next]"); if(nx){e.preventDefault();e.stopPropagation();lbStep(1);return;}
-  const ph=e.target.closest("[data-photo]");
-  if(ph && ph.dataset.lbProject){
+
+  /* CHUNK 4 (revised): clicking a thumbnail promotes it into the hero slot in
+     place (seen large). The hero itself opens the full-screen lightbox. */
+  const th=e.target.closest(".thumb[data-lb-project]");
+  if(th){
     e.preventDefault(); e.stopImmediatePropagation();
-    const proj=PROJECTS.find(x=>x.slug===ph.dataset.lbProject); if(!proj) return;
-    window.lbList=proj.frames.map(f=>f.src);
-    window.lbIndex=parseInt(ph.dataset.lbIndex||"0",10)||0;
-    const lb=document.getElementById("v10lightbox"); if(!lb) return;
-    lbRender();
-    lb.classList.add("on"); lb.setAttribute("aria-hidden","false");
-    document.documentElement.style.overflow="hidden";
+    const card=th.closest("[data-project-card]"); if(!card) return;
+    const heroBtn=card.querySelector(".showcase-hero"); if(!heroBtn) return;
+    const heroImg=heroBtn.querySelector("img");
+    if(heroImg) heroImg.src=src(th.dataset.photo);
+    heroBtn.dataset.photo=th.dataset.photo;
+    heroBtn.dataset.lbIndex=th.dataset.lbIndex||"0";
+    heroBtn.dataset.cap=th.dataset.cap||"";
+    return;
+  }
+  const hero=e.target.closest(".showcase-hero[data-lb-project]");
+  if(hero){
+    e.preventDefault(); e.stopImmediatePropagation();
+    lbOpenFrom(hero.dataset.lbProject, parseInt(hero.dataset.lbIndex||"0",10)||0);
+    return;
   }
 },true);
+
+/* Project detail page: small boxed "back to projects" -> home + scroll to list. */
+document.addEventListener("click",function(e){
+  const b=e.target.closest("[data-back-projects]"); if(!b) return;
+  e.preventDefault();
+  location.hash="#/";
+  requestAnimationFrame(function(){ setTimeout(function(){ if(typeof v24ScrollToProjects==="function") v24ScrollToProjects(); },80); });
+});
 document.addEventListener("keydown",function(e){
   const lb=document.getElementById("v10lightbox"); if(!lb || !lb.classList.contains("on")) return;
   if(e.key==="ArrowLeft"){ e.preventDefault(); e.stopImmediatePropagation(); lbStep(-1); }
