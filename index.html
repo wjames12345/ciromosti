@@ -6873,13 +6873,20 @@ let counterIdx = 1;
 /* ---------------- helpers ---------------- */
 const $ = s => document.querySelector(s);
 const src = k => IMG[k];
+/* Lightweight image derivatives (see _build/derivatives.py). Small thumbnails
+   and a mid-size hero candidate keep mobile Safari under its decode budget so
+   every image loads; the lightbox and desktop still use the full 2000px file. */
+const thumbSrc = k => (k||"").replace(/\.jpg$/i, "-t.jpg");
+const medSrc   = k => (k||"").replace(/\.jpg$/i, "-m.jpg");
+const heroSet  = k => `${medSrc(k)} 1200w, ${src(k)} 2000w`;
+const HERO_SIZES = "(max-width:1024px) 100vw, 62vw";
 const pad = n => String(n).padStart(3,"0");
 
 function frameHTML(f){
   const meta = IMGMETA[f.src];
   return `<figure class="frame ${f.or}" data-id="${f.id}">
     <button class="photo-button" type="button" data-photo="${f.src}" data-cap="${encodeURIComponent(f.cap||"")}" aria-label="Open photograph">
-      <img class="photo-img" src="${src(f.src)}" alt="" width="${meta.w}" height="${meta.h}" loading="lazy" decoding="async">
+      <img class="photo-img" src="${src(f.src)}" srcset="${medSrc(f.src)} 1200w, ${src(f.src)} 2000w" sizes="(max-width:1024px) 100vw, 2000px" alt="" width="${meta.w}" height="${meta.h}" loading="lazy" decoding="async">
     </button>
     <figcaption class="photo-caption">${f.cap}</figcaption>
   </figure>`;
@@ -7102,7 +7109,7 @@ function deliver(){
     <p class="lede"><em>32 frames, retouched. Full resolution, no expiry.</em></p>
     <div class="eyebrow"><em>Delivered 14 November 2025 · Ciro Mosti</em></div>
     <div class="dgrid">
-      ${ALLFRAMES.map(f=>`<img src="${src(f.src)}" alt="">`).join("")}
+      ${ALLFRAMES.map(f=>`<img src="${thumbSrc(f.src)}" alt="" loading="lazy" decoding="async">`).join("")}
     </div>
     <button class="submit" style="margin-top:3em">Download all</button>
     <p class="note"><em>Preview only — download is not wired up.</em></p>
@@ -7126,7 +7133,7 @@ function renderIndex(){
     const items = [...order,...shuffle(ALLFRAMES),...shuffle(ALLFRAMES),...shuffle(ALLFRAMES)];
     return `<div class="archive-row">${items.map(f=>`
       <a class="archive-thumb" href="#/projects/${f.slug}" aria-label="${f.project}">
-        <img src="${src(f.src)}" alt="" loading="lazy">
+        <img src="${thumbSrc(f.src)}" alt="" loading="lazy" decoding="async">
       </a>`).join("")}</div>`;
   }).join("");
 
@@ -7782,12 +7789,12 @@ function projectShowcaseBlockHTML(p,index){
         </div>
         <div class="showcase-hero" role="button" tabindex="0" data-photo="${hero.src}" data-lb-project="${p.slug}" data-lb-index="0" data-cap="${encodeURIComponent(hero.cap||"")}" aria-label="Open hero photograph">
           ${p.frames.length>1?`<button class="hero-arrow prev" type="button" data-hero-prev aria-label="Previous image">‹</button>`:""}
-          <img src="${src(hero.src)}" alt="" loading="lazy" decoding="async">
+          <img src="${src(hero.src)}" srcset="${heroSet(hero.src)}" sizes="${HERO_SIZES}" alt="" loading="lazy" decoding="async">
           ${p.frames.length>1?`<button class="hero-arrow next" type="button" data-hero-next aria-label="Next image">›</button>`:""}
         </div>
       </div>
       <div class="showcase-thumbs is-static" data-rail-viewport>
-        <div class="thumb-track" data-rail-track>${thumbs.map((f,i)=>`<button class="thumb" type="button" data-original-thumb="1" data-original-index="${i}" data-photo="${f.src}" data-lb-project="${p.slug}" data-lb-index="${i}" data-cap="${encodeURIComponent(f.cap||"")}" aria-label="Open photograph"><img src="${src(f.src)}" alt="" loading="lazy" decoding="async"></button>`).join("")}</div>
+        <div class="thumb-track" data-rail-track>${thumbs.map((f,i)=>`<button class="thumb" type="button" data-original-thumb="1" data-original-index="${i}" data-photo="${f.src}" data-lb-project="${p.slug}" data-lb-index="${i}" data-cap="${encodeURIComponent(f.cap||"")}" aria-label="Open photograph"><img src="${thumbSrc(f.src)}" alt="" loading="lazy" decoding="async"></button>`).join("")}</div>
         <button class="carousel-arrow prev" type="button" data-carousel-prev aria-label="Previous image">‹</button>
         <button class="carousel-arrow next" type="button" data-carousel-next aria-label="Next image">›</button>
       </div>
@@ -8783,7 +8790,7 @@ function v23DownloadIndexHTML(){
 /* Home = stop-motion -> download index -> Projects sequence. */
 function landing(){
   const bg = V10_LANDING.map((u,i) =>
-    `<img class="stopmotion-frame${i===0?" is-on":""}" src="${u.src}" style="object-position:${u.pos||'center center'}" loading="eager" decoding="async"${i===0?' fetchpriority="high"':''} alt="" aria-hidden="true">`
+    `<img class="stopmotion-frame${i===0?" is-on":""}" src="${u.src}" srcset="${medSrc(u.src)} 1200w, ${u.src} 2000w" sizes="100vw" style="object-position:${u.pos||'center center'}" loading="eager" decoding="async"${i===0?' fetchpriority="high"':''} alt="" aria-hidden="true">`
   ).join("");
 
   return `<section class="v10-landing" id="v10Landing">
@@ -9296,6 +9303,14 @@ function lbOpenFrom(project, index){
   lb.classList.add("on"); lb.setAttribute("aria-hidden","false");
   document.documentElement.style.overflow="hidden";
 }
+/* Point the hero <img> at a new frame, keeping the responsive srcset in sync so
+   mobile still receives the light 1200px candidate (not the old hero's). */
+function setHeroImage(img, fullPath){
+  if(!img) return;
+  img.srcset=heroSet(fullPath);
+  img.sizes=HERO_SIZES;
+  img.src=src(fullPath);
+}
 document.addEventListener("click",function(e){
   /* Hero prev/next arrows: step the hero image manually through the project's
      frames (wraps). No auto transition anywhere. */
@@ -9307,7 +9322,7 @@ document.addEventListener("click",function(e){
     const n=proj.frames.length; if(!n) return;
     const cur=parseInt(hero.dataset.lbIndex||"0",10)||0;
     const ni=(cur+(hn?1:-1)+n)%n;
-    const img=hero.querySelector("img"); if(img) img.src=src(proj.frames[ni].src);
+    setHeroImage(hero.querySelector("img"), proj.frames[ni].src);
     hero.dataset.lbIndex=String(ni); hero.dataset.photo=proj.frames[ni].src;
     return;
   }
@@ -9321,11 +9336,16 @@ document.addEventListener("click",function(e){
     e.preventDefault(); e.stopImmediatePropagation();
     const card=th.closest("[data-project-card]"); if(!card) return;
     const heroBtn=card.querySelector(".showcase-hero"); if(!heroBtn) return;
-    const heroImg=heroBtn.querySelector("img");
-    if(heroImg) heroImg.src=src(th.dataset.photo);
+    setHeroImage(heroBtn.querySelector("img"), th.dataset.photo);
     heroBtn.dataset.photo=th.dataset.photo;
     heroBtn.dataset.lbIndex=th.dataset.lbIndex||"0";
     heroBtn.dataset.cap=th.dataset.cap||"";
+    /* On phones the hero sits above the thumbnail strip, so promoting a thumb
+       would otherwise change an image scrolled off-screen. Bring the promoted
+       hero into view so it is visibly "made the hero". */
+    if(window.matchMedia("(max-width:1024px)").matches){
+      heroBtn.scrollIntoView({behavior:"smooth", block:"center"});
+    }
     return;
   }
   const hero=e.target.closest(".showcase-hero[data-lb-project]");
