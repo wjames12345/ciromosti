@@ -5185,18 +5185,26 @@ html body [data-project-card] .showcase-hero img{
   }
 }
 
-/* HOME-ROUTE HOVER FIX — .v12-masthead itself carries mix-blend-mode:difference
-   on the home route, which re-inverts the hovered black box into an invisible
-   white one. Neutralise that blend ONLY while a nav item is hovered, so the box
-   renders solid black on home exactly as it does on internal routes. Non-hover
-   inversion is untouched (each link keeps its own difference blend). */
-html body[data-route="/"] .v12-masthead:has(.v12-mainnav > a:hover),
-html body[data-route="/"] .v12-masthead:has(.v12-mainnav > a:focus-visible),
-html body[data-route="/"] .v12-masthead:has(.v12-project-cell > a:hover),
-html body[data-route="/"] .v12-masthead:has(.v12-project-cell > a:focus-visible),
-html body[data-route="/"] .v12-masthead:has(.v12-project-list a:hover),
-html body[data-route="/"] .v12-masthead:has(.v12-project-list a:focus-visible){
+/* HOME-ROUTE HOVER FIX.
+   On the home route the WHOLE masthead (CIRO MOSTI wordmark + every nav item)
+   is white text made to read black by mix-blend-mode:difference. Simply
+   dropping the masthead blend on hover turned every non-hovered item and the
+   wordmark literally white. Correct behaviour: while any nav/submenu item is
+   hovered, drop the masthead blend AND repaint the wordmark + all NON-hovered
+   items as solid black (the landing band is white), so ONLY the hovered item
+   changes (its black box + white text). Resting inversion is untouched. */
+html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:hover),
+html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:focus-visible){
   mix-blend-mode:normal!important;
+}
+html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:hover) .v21-logo-text,
+html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:focus-visible) .v21-logo-text,
+html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:hover) .v12-mainnav a:not(:hover):not(:focus-visible),
+html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:focus-visible) .v12-mainnav a:not(:hover):not(:focus-visible){
+  color:#111!important;
+  -webkit-text-fill-color:#111!important;
+  mix-blend-mode:normal!important;
+  background:none!important;
 }
 
 /* EMAIL CAPTURE MODAL (visual only for now, not wired to a backend).
