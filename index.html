@@ -5199,6 +5199,54 @@ html body[data-route="/"] .v12-masthead:has(.v12-project-list a:focus-visible){
   mix-blend-mode:normal!important;
 }
 
+/* EMAIL CAPTURE MODAL (visual only for now, not wired to a backend).
+   Same minimal language as the password gate: white panel, 1px frame, mono
+   lowercase, black submit that inverts on hover. Centred on a near solid scrim. */
+.email-gate{
+  position:fixed!important;inset:0!important;z-index:600!important;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.985)!important;padding:24px!important;
+}
+.email-gate.on{ display:flex!important; }
+.email-gate-panel{
+  background:#fff!important;color:#111!important;
+  width:100%!important;max-width:420px!important;
+  padding:40px 30px 26px!important;position:relative!important;text-align:center!important;
+  border-radius:0!important;
+}
+.email-gate-close{
+  position:absolute!important;top:14px!important;right:16px!important;
+  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:11px!important;
+  text-transform:lowercase!important;letter-spacing:.05em!important;
+  color:#111!important;background:none!important;border:none!important;cursor:pointer!important;
+}
+.email-gate-title{
+  font-family:var(--v12-font,inherit)!important;font-size:21px!important;font-weight:400!important;
+  letter-spacing:.03em!important;margin:0 0 10px!important;text-transform:lowercase!important;
+}
+.email-gate-note{
+  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:12px!important;
+  letter-spacing:.03em!important;color:#555!important;margin:0 0 20px!important;text-transform:lowercase!important;
+}
+.email-gate form{ display:flex!important;flex-direction:column!important;gap:10px!important;align-items:stretch!important; }
+.email-gate input{
+  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:13px!important;
+  padding:12px!important;border:1px solid #111!important;background:#fff!important;color:#111!important;
+  border-radius:0!important;width:100%!important;box-sizing:border-box!important;text-align:center!important;
+}
+.email-gate button[type="submit"]{
+  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:12px!important;
+  text-transform:lowercase!important;letter-spacing:.05em!important;
+  padding:12px 16px!important;border:1px solid #111!important;background:#111!important;color:#fff!important;
+  cursor:pointer!important;border-radius:0!important;
+}
+.email-gate button[type="submit"]:hover{ background:#fff!important;color:#111!important; }
+.email-gate-fine{
+  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:10px!important;
+  color:#9a9a9a!important;margin:14px 0 0!important;text-transform:lowercase!important;letter-spacing:.02em!important;
+}
+.email-gate-done{ padding:6px 0 2px!important; }
+
 /* Project detail: small, minimal boxed "back to projects", pinned top-left. */
 .back-to-projects{
   position:fixed!important;
@@ -8855,6 +8903,79 @@ document.addEventListener("click",function(e){
   e.preventDefault();
   location.hash="#/";
   requestAnimationFrame(function(){ setTimeout(function(){ if(typeof v24ScrollToProjects==="function") v24ScrollToProjects(); },80); });
+});
+
+/* ===== EMAIL CAPTURE MODAL (visual + interaction only; NOT wired to a backend
+   yet). Gates the full portfolio download only. On submit it shows the thank
+   you state and starts the download client side. No email is sent or stored. ===== */
+(function(){
+  if(document.getElementById("emailGate")) return;
+  var g=document.createElement("div");
+  g.className="email-gate"; g.id="emailGate"; g.setAttribute("aria-hidden","true");
+  g.innerHTML=''
+    + '<div class="email-gate-panel" role="dialog" aria-modal="true" aria-label="Download by email">'
+    +   '<button class="email-gate-close" type="button" data-email-close aria-label="Close">close / esc</button>'
+    +   '<div class="email-gate-body">'
+    +     '<h2 class="email-gate-title">download</h2>'
+    +     '<p class="email-gate-note">enter your email and the pdf is yours.</p>'
+    +     '<form data-email-form autocomplete="on">'
+    +       '<input type="email" name="email" placeholder="your email" required autocomplete="email" autofocus>'
+    +       '<button type="submit">send it to me</button>'
+    +     '</form>'
+    +     '<p class="email-gate-fine">you will only be emailed the file you asked for.</p>'
+    +   '</div>'
+    +   '<div class="email-gate-done" hidden>'
+    +     '<h2 class="email-gate-title">thank you</h2>'
+    +     '<p class="email-gate-note">your download is starting.</p>'
+    +   '</div>'
+    + '</div>';
+  document.body.appendChild(g);
+})();
+var emailGatePending=null;
+function openEmailGate(pending){
+  emailGatePending=pending;
+  var g=document.getElementById("emailGate"); if(!g) return;
+  var body=g.querySelector(".email-gate-body"), done=g.querySelector(".email-gate-done");
+  var form=g.querySelector("[data-email-form]"), input=g.querySelector('input[name="email"]');
+  if(body) body.hidden=false; if(done) done.hidden=true; if(form) form.reset();
+  g.classList.add("on"); g.setAttribute("aria-hidden","false");
+  document.documentElement.style.overflow="hidden";
+  if(input) setTimeout(function(){ input.focus(); },30);
+}
+function closeEmailGate(){
+  var g=document.getElementById("emailGate"); if(!g) return;
+  g.classList.remove("on"); g.setAttribute("aria-hidden","true");
+  document.documentElement.style.overflow="";
+}
+function startDownload(pending){
+  if(!pending) return;
+  var a=document.createElement("a");
+  a.href=pending.href; a.download=pending.name||"";
+  document.body.appendChild(a); a.click(); a.remove();
+}
+/* Intercept the full portfolio download and ask for an email first. */
+document.addEventListener("click",function(e){
+  var fp=e.target.closest("[data-full-portfolio-pdf]"); if(!fp) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  openEmailGate({ href:"assets/ciro-mosti-full-portfolio.pdf", name:"ciro-mosti-full-portfolio.pdf" });
+},true);
+/* Close controls. */
+document.addEventListener("click",function(e){
+  if(e.target.closest("[data-email-close]") || e.target.id==="emailGate"){ closeEmailGate(); }
+});
+document.addEventListener("keydown",function(e){
+  var g=document.getElementById("emailGate");
+  if(g && g.classList.contains("on") && e.key==="Escape"){ e.stopImmediatePropagation(); closeEmailGate(); }
+},true);
+/* Submit: (not wired) show thank you + start the download. No email is sent. */
+document.addEventListener("submit",function(e){
+  var form=e.target.closest("[data-email-form]"); if(!form) return;
+  e.preventDefault();
+  var g=document.getElementById("emailGate");
+  var body=g.querySelector(".email-gate-body"), done=g.querySelector(".email-gate-done");
+  if(body) body.hidden=true; if(done) done.hidden=false;
+  startDownload(emailGatePending);
+  setTimeout(closeEmailGate,1600);
 });
 document.addEventListener("keydown",function(e){
   const lb=document.getElementById("v10lightbox"); if(!lb || !lb.classList.contains("on")) return;
