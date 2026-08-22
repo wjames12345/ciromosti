@@ -5214,53 +5214,47 @@ html body[data-route="/"].masthead-hot .v12-mainnav a:not(:hover):not(:focus-vis
   transition:none!important;
 }
 
-/* EMAIL CAPTURE MODAL (visual only for now, not wired to a backend).
-   Same minimal language as the password gate: white panel, 1px frame, mono
-   lowercase, black submit that inverts on hover. Centred on a near solid scrim. */
-.email-gate{
-  position:fixed!important;inset:0!important;z-index:600!important;
-  display:none;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.985)!important;padding:24px!important;
-}
-.email-gate.on{ display:flex!important; }
-.email-gate-panel{
+/* EMAIL CAPTURE POPOVER (visual + interaction only, not wired to a backend).
+   A small inline box anchored to the clicked download button. NO full screen
+   takeover and NO dark scrim. A "remember me" tick stores the email locally so
+   later downloads skip the box. Mobile: a compact bar pinned near the bottom. */
+.email-pop{
+  position:fixed!important;z-index:600!important;
   background:#fff!important;color:#111!important;
-  width:100%!important;max-width:420px!important;
-  padding:40px 30px 26px!important;position:relative!important;text-align:center!important;
-  border-radius:0!important;
+  border:1px solid #111!important;border-radius:0!important;
+  padding:14px!important;width:290px!important;max-width:calc(100vw - 28px)!important;
+  box-shadow:0 8px 30px rgba(0,0,0,.14)!important;
 }
-.email-gate-close{
-  position:absolute!important;top:14px!important;right:16px!important;
+.email-pop[hidden]{ display:none!important; }
+.email-pop form{ display:flex!important;flex-direction:column!important;gap:9px!important;margin:0!important; }
+.email-pop input[type="email"]{
+  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:13px!important;
+  padding:10px!important;border:1px solid #111!important;background:#fff!important;color:#111!important;
+  border-radius:0!important;width:100%!important;box-sizing:border-box!important;
+}
+.email-pop-row{ display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important; }
+.email-pop-remember{
+  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:10.5px!important;
+  text-transform:lowercase!important;letter-spacing:.02em!important;color:#555!important;
+  display:flex!important;align-items:center!important;gap:6px!important;cursor:pointer!important;user-select:none!important;
+}
+.email-pop-remember input{ width:12px!important;height:12px!important;accent-color:#111!important;margin:0!important;border-radius:0!important; }
+.email-pop button[type="submit"]{
   font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:11px!important;
   text-transform:lowercase!important;letter-spacing:.05em!important;
-  color:#111!important;background:none!important;border:none!important;cursor:pointer!important;
+  padding:9px 15px!important;border:1px solid #111!important;background:#111!important;color:#fff!important;
+  cursor:pointer!important;border-radius:0!important;white-space:nowrap!important;
 }
-.email-gate-title{
-  font-family:var(--v12-font,inherit)!important;font-size:21px!important;font-weight:400!important;
-  letter-spacing:.03em!important;margin:0 0 10px!important;text-transform:lowercase!important;
+.email-pop button[type="submit"]:hover{ background:#fff!important;color:#111!important; }
+/* invisible catcher: closes on outside click, no dimming of the page */
+.email-pop-catch{ position:fixed!important;inset:0!important;z-index:599!important;background:transparent!important; }
+.email-pop-catch[hidden]{ display:none!important; }
+@media(max-width:767px){
+  .email-pop{
+    left:12px!important;right:12px!important;bottom:14px!important;top:auto!important;
+    width:auto!important;max-width:none!important;
+  }
 }
-.email-gate-note{
-  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:12px!important;
-  letter-spacing:.03em!important;color:#555!important;margin:0 0 20px!important;text-transform:lowercase!important;
-}
-.email-gate form{ display:flex!important;flex-direction:column!important;gap:10px!important;align-items:stretch!important; }
-.email-gate input{
-  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:13px!important;
-  padding:12px!important;border:1px solid #111!important;background:#fff!important;color:#111!important;
-  border-radius:0!important;width:100%!important;box-sizing:border-box!important;text-align:center!important;
-}
-.email-gate button[type="submit"]{
-  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:12px!important;
-  text-transform:lowercase!important;letter-spacing:.05em!important;
-  padding:12px 16px!important;border:1px solid #111!important;background:#111!important;color:#fff!important;
-  cursor:pointer!important;border-radius:0!important;
-}
-.email-gate button[type="submit"]:hover{ background:#fff!important;color:#111!important; }
-.email-gate-fine{
-  font-family:var(--v10-mono,ui-monospace,monospace)!important;font-size:10px!important;
-  color:#9a9a9a!important;margin:14px 0 0!important;text-transform:lowercase!important;letter-spacing:.02em!important;
-}
-.email-gate-done{ padding:6px 0 2px!important; }
 
 /* Project detail: small, minimal boxed "back to projects", pinned top-left. */
 .back-to-projects{
@@ -8940,93 +8934,92 @@ document.addEventListener("click",function(e){
   });
 })();
 
-/* ===== EMAIL CAPTURE MODAL (visual + interaction only; NOT wired to a backend
-   yet). Gates EVERY pdf download (per project + full portfolio). On submit it
-   shows the thank you state and starts the download client side. No email is
-   sent or stored. ===== */
+/* ===== EMAIL CAPTURE POPOVER (visual + interaction only; NOT wired to a
+   backend yet). A small box anchored to the clicked download button (no full
+   screen takeover, no dark scrim). "remember me" stores the email locally so
+   later downloads skip the box and just download. No email is sent anywhere. ===== */
 (function(){
-  if(document.getElementById("emailGate")) return;
-  var g=document.createElement("div");
-  g.className="email-gate"; g.id="emailGate"; g.setAttribute("aria-hidden","true");
-  g.innerHTML=''
-    + '<div class="email-gate-panel" role="dialog" aria-modal="true" aria-label="Download by email">'
-    +   '<button class="email-gate-close" type="button" data-email-close aria-label="Close">close / esc</button>'
-    +   '<div class="email-gate-body">'
-    +     '<h2 class="email-gate-title">download</h2>'
-    +     '<p class="email-gate-note">enter your email and the pdf is yours.</p>'
-    +     '<form data-email-form autocomplete="on">'
-    +       '<input type="email" name="email" placeholder="your email" required autocomplete="email" autofocus>'
-    +       '<button type="submit">send it to me</button>'
-    +     '</form>'
-    +     '<p class="email-gate-fine">you will only be emailed the file you asked for.</p>'
+  if(document.getElementById("emailPop")) return;
+  var c=document.createElement("div"); c.className="email-pop-catch"; c.id="emailPopCatch"; c.hidden=true;
+  var p=document.createElement("div"); p.className="email-pop"; p.id="emailPop"; p.hidden=true;
+  p.setAttribute("role","dialog"); p.setAttribute("aria-label","Download by email");
+  p.innerHTML=''
+    + '<form data-email-form autocomplete="off">'
+    +   '<input type="email" name="email" placeholder="your email to receive the pdf" required autocomplete="off" inputmode="email">'
+    +   '<div class="email-pop-row">'
+    +     '<label class="email-pop-remember"><input type="checkbox" name="remember" checked> remember me</label>'
+    +     '<button type="submit">download</button>'
     +   '</div>'
-    +   '<div class="email-gate-done" hidden>'
-    +     '<h2 class="email-gate-title">thank you</h2>'
-    +     '<p class="email-gate-note">your download is starting.</p>'
-    +   '</div>'
-    + '</div>';
-  document.body.appendChild(g);
+    + '</form>';
+  document.body.appendChild(c); document.body.appendChild(p);
 })();
 var emailGatePending=null;
-function openEmailGate(pending){
-  emailGatePending=pending;
-  var g=document.getElementById("emailGate"); if(!g) return;
-  var body=g.querySelector(".email-gate-body"), done=g.querySelector(".email-gate-done");
-  var form=g.querySelector("[data-email-form]"), input=g.querySelector('input[name="email"]');
-  if(body) body.hidden=false; if(done) done.hidden=true; if(form) form.reset();
-  g.classList.add("on"); g.setAttribute("aria-hidden","false");
-  document.documentElement.style.overflow="hidden";
-  if(input) setTimeout(function(){ input.focus(); },30);
-}
-function closeEmailGate(){
-  var g=document.getElementById("emailGate"); if(!g) return;
-  g.classList.remove("on"); g.setAttribute("aria-hidden","true");
-  document.documentElement.style.overflow="";
-}
+function rememberedEmail(){ try{ return localStorage.getItem("ciro-dl-email")||""; }catch(e){ return ""; } }
 function startDownload(pending){
   if(!pending) return;
   var a=document.createElement("a");
   a.href=pending.href; a.download=pending.name||"";
   document.body.appendChild(a); a.click(); a.remove();
 }
-/* Intercept EVERY pdf download (per project + full portfolio) and ask for an
-   email first. Locked (Yeezy, not yet unlocked) projects fall through to the
-   password gate instead. */
+function positionEmailPop(anchor){
+  var pop=document.getElementById("emailPop");
+  if(!pop || window.innerWidth<768) return;   // mobile: CSS pins it to the bottom
+  var r=anchor.getBoundingClientRect();
+  var pw=pop.offsetWidth||290, ph=pop.offsetHeight||120;
+  var left=Math.min(Math.max(8, r.left), window.innerWidth-pw-8);
+  var top=r.bottom+8;
+  if(top+ph > window.innerHeight-8) top=Math.max(8, r.top-ph-8);
+  pop.style.left=left+"px"; pop.style.top=top+"px"; pop.style.right="auto"; pop.style.bottom="auto";
+}
+function openEmailPop(anchor, pending){
+  emailGatePending=pending;
+  var pop=document.getElementById("emailPop"), c=document.getElementById("emailPopCatch");
+  if(!pop) return;
+  var input=pop.querySelector('input[name="email"]');
+  if(input) input.value=rememberedEmail();
+  c.hidden=false; pop.hidden=false;
+  positionEmailPop(anchor);
+  if(input) setTimeout(function(){ input.focus(); },20);
+}
+function closeEmailPop(){
+  var pop=document.getElementById("emailPop"), c=document.getElementById("emailPopCatch");
+  if(pop) pop.hidden=true; if(c) c.hidden=true;
+}
+/* Intercept EVERY pdf download (per project + full portfolio). If an email is
+   already remembered, download straight away; otherwise show the little box.
+   Locked (Yeezy, not yet unlocked) projects fall through to the password gate. */
 document.addEventListener("click",function(e){
+  if(e.target.id==="emailPopCatch"){ closeEmailPop(); return; }
   var fp=e.target.closest("[data-full-portfolio-pdf]");
-  if(fp){
-    e.preventDefault(); e.stopImmediatePropagation();
-    openEmailGate({ href:"assets/ciro-mosti-full-portfolio.pdf", name:"ciro-mosti-full-portfolio.pdf" });
-    return;
-  }
   var pp=e.target.closest("[data-pdf]");
-  if(pp){
+  var pending=null, anchor=null;
+  if(fp){ pending={ href:"assets/ciro-mosti-full-portfolio.pdf", name:"ciro-mosti-full-portfolio.pdf" }; anchor=fp; }
+  else if(pp){
     var slug=pp.dataset.pdf;
     var proj=PROJECTS.find(function(x){ return x.slug===slug; });
-    if(proj && proj.locked && !yeezyUnlocked()) return;   // let the password gate handle it
-    e.preventDefault(); e.stopImmediatePropagation();
-    openEmailGate({ href:"assets/pdf/"+slug+".pdf", name:slug+".pdf" });
-    return;
-  }
+    if(proj && proj.locked && !yeezyUnlocked()) return;   // password gate handles it
+    pending={ href:"assets/pdf/"+slug+".pdf", name:slug+".pdf" }; anchor=pp;
+  } else return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if(rememberedEmail()){ startDownload(pending); return; }   // remembered -> instant, no box
+  openEmailPop(anchor, pending);
 },true);
-/* Close controls. */
-document.addEventListener("click",function(e){
-  if(e.target.closest("[data-email-close]") || e.target.id==="emailGate"){ closeEmailGate(); }
-});
-document.addEventListener("keydown",function(e){
-  var g=document.getElementById("emailGate");
-  if(g && g.classList.contains("on") && e.key==="Escape"){ e.stopImmediatePropagation(); closeEmailGate(); }
-},true);
-/* Submit: (not wired) show thank you + start the download. No email is sent. */
+/* Submit: remember (if ticked) + start the download. No email is sent anywhere. */
 document.addEventListener("submit",function(e){
   var form=e.target.closest("[data-email-form]"); if(!form) return;
   e.preventDefault();
-  var g=document.getElementById("emailGate");
-  var body=g.querySelector(".email-gate-body"), done=g.querySelector(".email-gate-done");
-  if(body) body.hidden=true; if(done) done.hidden=false;
+  var email=((form.querySelector('input[name="email"]')||{}).value||"").trim();
+  var remember=(form.querySelector('input[name="remember"]')||{}).checked;
+  try{ if(remember && email){ localStorage.setItem("ciro-dl-email",email); } else { localStorage.removeItem("ciro-dl-email"); } }catch(err){}
   startDownload(emailGatePending);
-  setTimeout(closeEmailGate,1600);
+  closeEmailPop();
 });
+document.addEventListener("keydown",function(e){
+  var pop=document.getElementById("emailPop");
+  if(pop && !pop.hidden && e.key==="Escape"){ e.stopImmediatePropagation(); closeEmailPop(); }
+},true);
+/* Close the popover on scroll so it never floats away from its button. */
+window.addEventListener("scroll",function(){ var pop=document.getElementById("emailPop"); if(pop && !pop.hidden) closeEmailPop(); },true);
 document.addEventListener("keydown",function(e){
   const lb=document.getElementById("v10lightbox"); if(!lb || !lb.classList.contains("on")) return;
   if(e.key==="ArrowLeft"){ e.preventDefault(); e.stopImmediatePropagation(); lbStep(-1); }
