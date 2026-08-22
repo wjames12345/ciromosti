@@ -5185,26 +5185,33 @@ html body [data-project-card] .showcase-hero img{
   }
 }
 
-/* HOME-ROUTE HOVER FIX.
-   On the home route the WHOLE masthead (CIRO MOSTI wordmark + every nav item)
-   is white text made to read black by mix-blend-mode:difference. Simply
-   dropping the masthead blend on hover turned every non-hovered item and the
-   wordmark literally white. Correct behaviour: while any nav/submenu item is
-   hovered, drop the masthead blend AND repaint the wordmark + all NON-hovered
-   items as solid black (the landing band is white), so ONLY the hovered item
-   changes (its black box + white text). Resting inversion is untouched. */
-html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:hover),
-html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:focus-visible){
+/* Yeezy locked block: stack the copy so "password required" sits UNDER the
+   title (it does not fit alongside it like the download control does). */
+.showcase-copy.is-locked{
+  flex-direction:column!important;
+  align-items:center!important;
+  gap:6px!important;
+}
+
+/* HOME-ROUTE HOVER (flicker free).
+   On the home route the whole masthead (CIRO MOSTI wordmark + every nav item)
+   is white text made to read black by mix-blend-mode:difference. Toggling that
+   blend per hovered item made the entire menu + logo flicker white while
+   scanning options. Instead we hold the masthead in solid-black mode for the
+   WHOLE time the cursor is over it (body.masthead-hot, set by JS with a short
+   leave delay so the gap down to the submenu never drops it), and let the
+   single hovered item show its black box + white text. Resting inversion,
+   and internal routes, are untouched. */
+html body[data-route="/"].masthead-hot .v12-masthead{
   mix-blend-mode:normal!important;
 }
-html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:hover) .v21-logo-text,
-html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:focus-visible) .v21-logo-text,
-html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:hover) .v12-mainnav a:not(:hover):not(:focus-visible),
-html body[data-route="/"] .v12-masthead:has(.v12-mainnav a:focus-visible) .v12-mainnav a:not(:hover):not(:focus-visible){
+html body[data-route="/"].masthead-hot .v21-logo-text,
+html body[data-route="/"].masthead-hot .v12-mainnav a:not(:hover):not(:focus-visible){
   color:#111!important;
   -webkit-text-fill-color:#111!important;
   mix-blend-mode:normal!important;
   background:none!important;
+  transition:none!important;
 }
 
 /* EMAIL CAPTURE MODAL (visual only for now, not wired to a backend).
@@ -7379,7 +7386,7 @@ window.addEventListener("hashchange",()=>requestAnimationFrame(v12UpdateLandingS
 function projectShowcaseBlockHTML(p,index){
   const hero=p.frames[0];
   if(p.locked && !yeezyUnlocked()) return yeezyLockedBlockHTML(p,index);
-  const thumbs=p.frames.slice(1);   // non-hero images feed the rail
+  const thumbs=p.frames;   // ALL frames feed the rail (hero included)
   return `<section id="proj-${p.slug}" class="showcase-project${index%2?" is-alt":""}" data-project-card data-rail-index="0" data-frame-count="${thumbs.length}">
     <div class="showcase-project-inner">
       <div class="showcase-main">
@@ -7392,7 +7399,7 @@ function projectShowcaseBlockHTML(p,index){
         </button>
       </div>
       <div class="showcase-thumbs is-static" data-rail-viewport>
-        <div class="thumb-track" data-rail-track>${thumbs.map((f,i)=>`<button class="thumb" type="button" data-original-thumb="1" data-original-index="${i}" data-photo="${f.src}" data-lb-project="${p.slug}" data-lb-index="${i+1}" data-cap="${encodeURIComponent(f.cap||"")}" aria-label="Open photograph"><img src="${src(f.src)}" alt="" loading="lazy" decoding="async"></button>`).join("")}</div>
+        <div class="thumb-track" data-rail-track>${thumbs.map((f,i)=>`<button class="thumb" type="button" data-original-thumb="1" data-original-index="${i}" data-photo="${f.src}" data-lb-project="${p.slug}" data-lb-index="${i}" data-cap="${encodeURIComponent(f.cap||"")}" aria-label="Open photograph"><img src="${src(f.src)}" alt="" loading="lazy" decoding="async"></button>`).join("")}</div>
         <button class="carousel-arrow prev" type="button" data-carousel-prev aria-label="Previous image">‹</button>
         <button class="carousel-arrow next" type="button" data-carousel-next aria-label="Next image">›</button>
       </div>
@@ -8787,7 +8794,7 @@ function yeezyLockedBlockHTML(p,index){
   return `<section id="proj-${p.slug}" class="showcase-project${index%2?" is-alt":""}">
     <div class="showcase-project-inner">
       <div class="showcase-main">
-        <div class="showcase-copy">
+        <div class="showcase-copy is-locked">
           <a class="showcase-title" href="#/projects/${p.slug}">${p.title}</a>
           <button class="showcase-pdf yeezy-lock" type="button" data-yeezy-unlock>password required</button>
         </div>
@@ -8913,9 +8920,30 @@ document.addEventListener("click",function(e){
   requestAnimationFrame(function(){ setTimeout(function(){ if(typeof v24ScrollToProjects==="function") v24ScrollToProjects(); },80); });
 });
 
+/* ===== Home masthead hover hold: keep the masthead in solid-black mode the
+   whole time the cursor is over it (no per-item blend toggling = no flicker).
+   Delegated (the masthead is re-rendered on every route change) with a short
+   leave delay to bridge the gap between the nav row and the open submenu. ===== */
+(function(){
+  var hotTimer=null;
+  document.addEventListener("mouseover",function(e){
+    if(e.target.closest && e.target.closest(".v12-masthead")){
+      if(hotTimer){ clearTimeout(hotTimer); hotTimer=null; }
+      document.body.classList.add("masthead-hot");
+    }
+  });
+  document.addEventListener("mouseout",function(e){
+    if(!(e.target.closest && e.target.closest(".v12-masthead"))) return;
+    var to=e.relatedTarget;
+    if(to && to.closest && to.closest(".v12-masthead")) return;   // still inside
+    hotTimer=setTimeout(function(){ document.body.classList.remove("masthead-hot"); },130);
+  });
+})();
+
 /* ===== EMAIL CAPTURE MODAL (visual + interaction only; NOT wired to a backend
-   yet). Gates the full portfolio download only. On submit it shows the thank
-   you state and starts the download client side. No email is sent or stored. ===== */
+   yet). Gates EVERY pdf download (per project + full portfolio). On submit it
+   shows the thank you state and starts the download client side. No email is
+   sent or stored. ===== */
 (function(){
   if(document.getElementById("emailGate")) return;
   var g=document.createElement("div");
@@ -8961,11 +8989,25 @@ function startDownload(pending){
   a.href=pending.href; a.download=pending.name||"";
   document.body.appendChild(a); a.click(); a.remove();
 }
-/* Intercept the full portfolio download and ask for an email first. */
+/* Intercept EVERY pdf download (per project + full portfolio) and ask for an
+   email first. Locked (Yeezy, not yet unlocked) projects fall through to the
+   password gate instead. */
 document.addEventListener("click",function(e){
-  var fp=e.target.closest("[data-full-portfolio-pdf]"); if(!fp) return;
-  e.preventDefault(); e.stopImmediatePropagation();
-  openEmailGate({ href:"assets/ciro-mosti-full-portfolio.pdf", name:"ciro-mosti-full-portfolio.pdf" });
+  var fp=e.target.closest("[data-full-portfolio-pdf]");
+  if(fp){
+    e.preventDefault(); e.stopImmediatePropagation();
+    openEmailGate({ href:"assets/ciro-mosti-full-portfolio.pdf", name:"ciro-mosti-full-portfolio.pdf" });
+    return;
+  }
+  var pp=e.target.closest("[data-pdf]");
+  if(pp){
+    var slug=pp.dataset.pdf;
+    var proj=PROJECTS.find(function(x){ return x.slug===slug; });
+    if(proj && proj.locked && !yeezyUnlocked()) return;   // let the password gate handle it
+    e.preventDefault(); e.stopImmediatePropagation();
+    openEmailGate({ href:"assets/pdf/"+slug+".pdf", name:slug+".pdf" });
+    return;
+  }
 },true);
 /* Close controls. */
 document.addEventListener("click",function(e){
